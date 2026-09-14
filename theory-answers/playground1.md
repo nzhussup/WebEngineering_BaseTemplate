@@ -50,3 +50,11 @@ console.log('B'); // A, B, C
 `bears.map(...)` starts independent image operations; `Promise.all()` waits for them together and keeps results in input order. Each card already exists, so completion order cannot reorder bears. Each image handles its own failure. Normally, `Promise.all()` rejects when one input rejects, without cancelling the others. Concurrency overlaps waiting; it does not make JavaScript callbacks run on separate threads.
 
 Arrow functions inherit `this` from their surrounding scope; regular functions receive `this` according to how they are called. In a regular DOM event listener, `this` is the listener's element. An arrow listener must use an explicit reference or `event.currentTarget` instead. Our callbacks use explicit references, so conversion is safe. Arrows also have no own `arguments` and cannot be called with `new`.
+
+## Task 5: Remove remaining code smells
+
+I replaced `var` with `const`, using `let` only where the search position changes. `var` is function-scoped, so a declaration inside a block is still visible elsewhere in that function. `let` and `const` stay inside their block; `const` also prevents accidental reassignment.
+
+`const` does not freeze objects. For example, `const entries = []` still allows `entries.push(...)`; it only prevents assigning a different array to `entries`. The bear parser builds a fresh array and a fresh object per species. Rendering stores each bear with its own image reference, so concurrent operations update the correct element without mutating the bear data.
+
+I checked behavior in Chrome: comments and search still work, all bears retain their source order, and reverse-order image responses still update the right cards. Two simulated image failures produced two placeholders and the correct count. Request-error and syntax checks also passed.

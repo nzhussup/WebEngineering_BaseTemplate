@@ -1,10 +1,9 @@
 import { fetchImageUrl, fetchBearWikitext } from './wikipedia.js';
-
-import { loadImage, showPlaceholder } from './images.js';
+import { loadImage, showPlaceholder, showImageError } from './images.js';
 
 function readField(row, field) {
   // A field ends at the next named parameter, not at a pipe inside a wiki link.
-  var match = row.match(new RegExp('\\|\\s*' + field + '\\s*=([\\s\\S]*?)(?=\\|\\s*[\\w-]+\\s*=|$)'));
+  const match = row.match(new RegExp('\\|\\s*' + field + '\\s*=([\\s\\S]*?)(?=\\|\\s*[\\w-]+\\s*=|$)'));
   return match ? match[1].trim() : '';
 }
 
@@ -18,21 +17,22 @@ function plainText(value) {
 }
 
 export function extractBears(wikitext) {
-  var bears = [];
-  var seen = new Set();
+  const bears = [];
+  const seen = new Set();
   wikitext.split(/\{\{Species table\/row\s*/i).slice(1).forEach((row) => {
-    var name = plainText(readField(row, 'name'));
-    var binomial = plainText(readField(row, 'binomial'));
-    if (!name || !binomial || !plainText(readField(row, 'range'))) {
+    const name = plainText(readField(row, 'name'));
+    const binomial = plainText(readField(row, 'binomial'));
+    const range = plainText(readField(row, 'range'));
+    if (!name || !binomial || !range) {
       throw new Error('A Wikipedia species row is missing its name, scientific name, or range.');
     }
     if (seen.has(binomial)) return;
     seen.add(binomial);
     bears.push({
-      name: name,
-      binomial: binomial,
+      name,
+      binomial,
       fileName: readField(row, 'image').replace(/^File:/i, ''),
-      range: plainText(readField(row, 'range'))
+      range
     });
   });
   if (bears.length === 0) {
@@ -41,56 +41,55 @@ export function extractBears(wikitext) {
   return bears;
 }
 
-function renderBear(bear) {
-  var card = document.createElement('div');
+function createBearCard(bear) {
+  const card = document.createElement('div');
   card.className = 'bear';
-  var image = document.createElement('img');
+  const image = document.createElement('img');
   showPlaceholder(image, bear.name);
   image.width = 200;
-  var description = document.createElement('p');
-  var name = document.createElement('b');
+  const description = document.createElement('p');
+  const name = document.createElement('b');
   name.textContent = bear.name;
   description.append(name, ' (' + bear.binomial + ')');
-  var range = document.createElement('p');
+  const range = document.createElement('p');
   range.textContent = 'Range: ' + bear.range;
   card.append(image, description, range);
-  document.querySelector('.bear-list').append(card);
-  return image;
+  return { bear, card, image };
 }
 
 async function loadBearImage(bear, image) {
   try {
     if (!bear.fileName) return false;
-    var url = await fetchImageUrl(bear.fileName);
+    const url = await fetchImageUrl(bear.fileName);
     if (!url) return false;
     await loadImage(image, url);
     image.alt = 'Image of ' + bear.name;
     return false;
   } catch (error) {
     console.error('Image failed for ' + bear.name + ':', error);
-    showPlaceholder(image, bear.name);
-    var message = document.createElement('p');
-    message.textContent = 'Image could not be loaded. A placeholder is shown.';
-    image.after(message);
+    showImageError(image, bear.name);
     return true;
   }
 }
 
 export async function initBears() {
-  var status = document.querySelector('.bear-status');
-  var list = document.querySelector('.bear-list');
+  const status = document.querySelector('.bear-status');
+  const list = document.querySelector('.bear-list');
   status.textContent = 'Loading bears…';
   list.replaceChildren();
   try {
-    var wikitext = await fetchBearWikitext();
-    var bears = extractBears(wikitext);
+    const wikitext = await fetchBearWikitext();
+    const bears = extractBears(wikitext);
     // Create every card in source order before any image requests finish.
-    var images = bears.map(renderBear);
+    const entries = bears.map(createBearCard);
+    const fragment = document.createDocumentFragment();
+    entries.forEach(({ card }) => fragment.append(card));
+    list.replaceChildren(fragment);
     status.textContent = 'Bear information loaded. Loading images…';
-    var results = await Promise.all(
-      bears.map((bear, index) => loadBearImage(bear, images[index]))
+    const imageFailures = await Promise.all(
+      entries.map(({ bear, image }) => loadBearImage(bear, image))
     );
-    var failedImages = results.filter(failed => failed).length;
+    const failedImages = imageFailures.filter(Boolean).length;
     status.textContent = failedImages
       ? 'Bear information loaded, but ' + failedImages + ' image(s) could not be loaded. Placeholders are shown. Reload the page to try again.'
       : '';

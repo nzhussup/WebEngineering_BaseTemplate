@@ -248,3 +248,13 @@ audio {
 .comment-container li p:nth-child(2) {
   flex: 5;
 }
+
+/* Article text and search results */
+body {
+  font-family: Arial, sans-serif;
+}
+
+.highlight {
+  background-color: yellow;
+  color: black;
+}

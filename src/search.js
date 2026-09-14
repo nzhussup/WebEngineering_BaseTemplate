@@ -1,43 +1,50 @@
+function clearHighlights(article) {
+  article.querySelectorAll('mark.highlight').forEach((mark) => {
+    const parent = mark.parentNode;
+    mark.replaceWith(document.createTextNode(mark.textContent));
+    parent.normalize();
+  });
+}
+
+function collectTextNodes(article) {
+  const walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => node.parentElement.closest('script, style, form, button')
+      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  // Snapshot before replacing nodes so tree changes cannot skip matches.
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+  return textNodes;
+}
+
+function highlightText(node, regex) {
+  const fragment = document.createDocumentFragment();
+  let position = 0;
+  for (const match of node.nodeValue.matchAll(regex)) {
+    fragment.append(document.createTextNode(node.nodeValue.slice(position, match.index)));
+    const mark = document.createElement('mark');
+    mark.className = 'highlight';
+    mark.textContent = match[0];
+    fragment.append(mark);
+    position = match.index + match[0].length;
+  }
+  if (position === 0) return;
+  fragment.append(document.createTextNode(node.nodeValue.slice(position)));
+  node.replaceWith(fragment);
+}
+
 export function initSearch() {
-  var form = document.querySelector('.search');
+  const form = document.querySelector('.search');
+  const queryField = form.querySelector('[name="q"]');
+  const articles = document.querySelectorAll('article');
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    var searchKey = form.querySelector('[name="q"]').value.trim();
-
-    document.querySelectorAll('article').forEach((article) => {
-      article.querySelectorAll('mark.highlight').forEach((mark) => {
-        var parent = mark.parentNode;
-        mark.replaceWith(document.createTextNode(mark.textContent));
-        parent.normalize();
-      });
+    const searchKey = queryField.value.trim();
+    const regex = new RegExp(searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    articles.forEach((article) => {
+      clearHighlights(article);
       if (!searchKey) return;
-
-      var regex = new RegExp(searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-      var walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, {
-        acceptNode: (node) => {
-          return node.parentElement.closest('script, style, form, button')
-            ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
-        }
-      });
-      // Collect first: changing the tree while walking it can skip text nodes.
-      var textNodes = [];
-      while (walker.nextNode()) textNodes.push(walker.currentNode);
-
-      textNodes.forEach((node) => {
-        var fragment = document.createDocumentFragment();
-        var position = 0;
-        for (var match of node.nodeValue.matchAll(regex)) {
-          fragment.append(document.createTextNode(node.nodeValue.slice(position, match.index)));
-          var mark = document.createElement('mark');
-          mark.className = 'highlight';
-          mark.textContent = match[0];
-          fragment.append(mark);
-          position = match.index + match[0].length;
-        }
-        if (position === 0) return;
-        fragment.append(document.createTextNode(node.nodeValue.slice(position)));
-        node.replaceWith(fragment);
-      });
+      collectTextNodes(article).forEach((node) => highlightText(node, regex));
     });
   });
 }

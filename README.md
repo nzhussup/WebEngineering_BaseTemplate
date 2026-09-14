@@ -75,13 +75,35 @@ Find and eliminate the remaining bad coding practices. Consider scope, accidenta
 
 **Theory question:** Select one of your refactorings and explain how JavaScript scope, closures, references, or prototypes caused the original risk. State how you verified that your refactoring preserved behavior.
 
-> **What bad coding practices did you find? Why is it a bad practice and how did you fix it?**
-> 
-> _Present your findings here..._
->
-> ```js
-> console.log('Make use of markdown codesnippets to show and explain good/bad practices!')
-> ```
+**Findings and fixes (Tasks 1–5)**
+
+| Finding | Problem | Fix |
+| --- | --- | --- |
+| One inline script with shared globals | Features could interfere; dependencies were unclear. | ES modules with explicit imports and private scope. |
+| `var` throughout | Function scope and reassignment made variable lifetimes less clear. | `const` by default; `let` only for the changing search position. No undeclared assignments remain. |
+| Parsing, fetching, and rendering mixed together | Changes were hard to isolate. | Separate request helpers, parser, card creation, image loading, and startup. Search now has separate clear/collect/highlight helpers; comment creation is also separate. |
+| Async callbacks pushed into a shared bear array | Completion timing affected order and the render condition was unreliable. | Parse first, build cards in source order, then load images concurrently. Count failures from returned results. |
+| Separate bear and image arrays | Correct pairing depended on matching indexes. | Each entry stores `{ bear, card, image }`; its loader receives that pair directly. |
+| Repeated DOM queries and appends | Rendering depended on a global selector and repeatedly changed the live list. | Create detached cards, collect them in a fragment, and update the list once. Cache fixed search elements. |
+| `innerHTML +=` and text converted into HTML | Existing nodes could be recreated; text could become markup. | Create elements and text nodes explicitly. Preserve existing controls and listeners during search. |
+| Duplicated request options, range parsing, and fallback UI | Copies could drift apart. | Central API defaults, one range extraction per row, and a shared image-error helper. Keep the placeholder path private. |
+| UI text used as state; misspelled DOM properties | Toggle broke and commenter names disappeared. | Use `hidden` as state, correct properties, and validate trimmed input. |
+| Debug output and inline presentation code | Unnecessary logging and scattered styles obscured the application. | Remove debug logs and template comments; move inline CSS into `style.css`. Keep diagnostic error logs. |
+| Unchecked requests and unnecessary serial waiting | Failures looked like missing data; independent images waited for each other. | Validate responses, catch at recovery points, and use `async`/`await` with `Promise.all()`. |
+
+```js
+// Each operation keeps the correct bear and image together.
+const entries = bears.map(createBearCard);
+const imageFailures = await Promise.all(
+  entries.map(({ bear, image }) => loadBearImage(bear, image))
+);
+```
+
+Verified with Chrome checks for comments, search, bear order, missing/broken images,
+and request failures. Delayed responses completed in reverse order with two failures;
+card/image pairing and failure counts stayed correct. JavaScript syntax checks passed.
+
+[Theory answers](theory-answers/playground1.md#task-5-remove-remaining-code-smells)
 
 
 ## 2. Dependency- and Build Management Playground
