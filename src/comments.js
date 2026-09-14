@@ -6,19 +6,19 @@ export function initComments() {
   var commentField = form.querySelector('[name="comment"]');
   var list = document.querySelector('.comment-container');
 
-  showHideBtn.addEventListener('click', function() {
+  showHideBtn.addEventListener('click', () => {
     commentWrapper.hidden = !commentWrapper.hidden;
     showHideBtn.textContent = commentWrapper.hidden ? 'Show comments' : 'Hide comments';
     showHideBtn.setAttribute('aria-expanded', String(!commentWrapper.hidden));
   });
 
-  [nameField, commentField].forEach(function(field) {
-    field.addEventListener('input', function() {
+  [nameField, commentField].forEach((field) => {
+    field.addEventListener('input', () => {
       field.setCustomValidity('');
     });
   });
 
-  form.addEventListener('submit', function(event) {
+  form.addEventListener('submit', (event) => {
     event.preventDefault();
     var name = nameField.value.trim();
     var comment = commentField.value.trim();

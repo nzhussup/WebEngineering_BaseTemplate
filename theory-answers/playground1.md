@@ -30,3 +30,23 @@ Network failures and invalid JSON reject promises. Throwing inside `.then()` als
 `fetch()` does not reject for HTTP errors such as 404 or 503, so `requestWikipedia()` checks `response.ok`. Image `error` events are separate callbacks; `loadImage()` converts them into promise rejections.
 
 Catch where recovery is possible: `initBears()` shows a list error; `loadBearImage()` restores one placeholder and lets later images load. Low-level request helpers keep errors rejected. Returning `[]` or `null` for every failure would hide its cause and look like valid missing data. Console logging preserves technical details; the page shows a readable message. `null` is reserved for an explicitly missing Wikipedia file.
+
+## Task 4: Refactor asynchronous control flow
+
+An `async` function always returns a promise. `await` pauses that function until a promise settles; it does not block the browser. A rejection throws at the `await`, so `try`/`catch` still works.
+
+The event loop runs tasks such as clicks and timers. After the current stack finishes, it drains microtasks, including promise handlers and continuations after `await`, before taking another task. Rendering can happen between tasks. Even awaiting an already resolved promise resumes asynchronously:
+
+```js
+async function example() {
+  console.log('A');
+  await Promise.resolve();
+  console.log('C');
+}
+example();
+console.log('B'); // A, B, C
+```
+
+`bears.map(...)` starts independent image operations; `Promise.all()` waits for them together and keeps results in input order. Each card already exists, so completion order cannot reorder bears. Each image handles its own failure. Normally, `Promise.all()` rejects when one input rejects, without cancelling the others. Concurrency overlaps waiting; it does not make JavaScript callbacks run on separate threads.
+
+Arrow functions inherit `this` from their surrounding scope; regular functions receive `this` according to how they are called. In a regular DOM event listener, `this` is the listener's element. An arrow listener must use an explicit reference or `event.currentTarget` instead. Our callbacks use explicit references, so conversion is safe. Arrows also have no own `arguments` and cannot be called with `new`.

@@ -20,7 +20,7 @@ function plainText(value) {
 export function extractBears(wikitext) {
   var bears = [];
   var seen = new Set();
-  wikitext.split(/\{\{Species table\/row\s*/i).slice(1).forEach(function(row) {
+  wikitext.split(/\{\{Species table\/row\s*/i).slice(1).forEach((row) => {
     var name = plainText(readField(row, 'name'));
     var binomial = plainText(readField(row, 'binomial'));
     if (!name || !binomial || !plainText(readField(row, 'range'))) {
@@ -87,14 +87,10 @@ export async function initBears() {
     // Create every card in source order before any image requests finish.
     var images = bears.map(renderBear);
     status.textContent = 'Bear information loaded. Loading images…';
-    var failedImages = 0;
-    await bears.reduce(function(previous, bear, index) {
-      return previous.then(function() {
-        return loadBearImage(bear, images[index]);
-      }).then(function(failed) {
-        if (failed) failedImages += 1;
-      });
-    }, Promise.resolve());
+    var results = await Promise.all(
+      bears.map((bear, index) => loadBearImage(bear, images[index]))
+    );
+    var failedImages = results.filter(failed => failed).length;
     status.textContent = failedImages
       ? 'Bear information loaded, but ' + failedImages + ' image(s) could not be loaded. Placeholders are shown. Reload the page to try again.'
       : '';

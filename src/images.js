@@ -1,8 +1,8 @@
 export var placeholder = './media/bear-placeholder.svg';
 
 export function loadImage(image, url) {
-  return new Promise(function(resolve, reject) {
-    var timer = setTimeout(function() {
+  return new Promise((resolve, reject) => {
+    var timer = setTimeout(() => {
       finish(new Error('Image loading timed out: ' + url));
     }, 15000);
 
@@ -34,16 +34,18 @@ export function showPlaceholder(image, name) {
   image.alt = 'No image available for ' + name;
 }
 
-export function initImages() {
-  document.querySelectorAll('article img').forEach(function(image) {
+export async function initImages() {
+  await Promise.all(Array.from(document.querySelectorAll('article img'), async (image) => {
     var description = image.alt;
-    loadImage(image, image.src).catch(function(error) {
+    try {
+      await loadImage(image, image.src);
+    } catch (error) {
       console.error('Article image failed:', error);
       showPlaceholder(image, description);
       var message = document.createElement('p');
       message.setAttribute('role', 'status');
       message.textContent = 'This image could not be loaded. A placeholder is shown.';
       image.after(message);
-    });
-  });
+    }
+  }));
 }
