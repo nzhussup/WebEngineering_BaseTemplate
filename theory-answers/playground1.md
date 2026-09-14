@@ -20,3 +20,13 @@ An event travels through three phases:
 `event.target` is where the event started; `event.currentTarget` is the element whose listener is running. `preventDefault()` cancels the default action, such as a form navigating away. It does not stop propagation; `stopPropagation()` does.
 
 Delegation could handle future delete buttons in `.comment-container`: one listener on the list checks `event.target.closest('.delete-comment')`. It also handles buttons added with new comments. The trade-off is extra target filtering and dependence on bubbling; a child that stops propagation can prevent the handler from running. Direct listeners are simpler for the current fixed forms and toggle.
+
+## Task 3: Make failures explicit
+
+Synchronous exceptions move up the call stack until a `catch` handles them. For example, `extractBears()` throws when a species row is incomplete; `initBears()` catches it and shows a load error.
+
+Network failures and invalid JSON reject promises. Throwing inside `.then()` also rejects the next promise. Rejections travel through returned promise chains; `await` turns a rejection into a throw at that line, where `try`/`catch` can handle it. A plain `try` around an unawaited promise cannot catch its later rejection.
+
+`fetch()` does not reject for HTTP errors such as 404 or 503, so `requestWikipedia()` checks `response.ok`. Image `error` events are separate callbacks; `loadImage()` converts them into promise rejections.
+
+Catch where recovery is possible: `initBears()` shows a list error; `loadBearImage()` restores one placeholder and lets later images load. Low-level request helpers keep errors rejected. Returning `[]` or `null` for every failure would hide its cause and look like valid missing data. Console logging preserves technical details; the page shows a readable message. `null` is reserved for an explicitly missing Wikipedia file.

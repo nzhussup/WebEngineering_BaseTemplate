@@ -1,6 +1,6 @@
 import { fetchImageUrl, fetchBearWikitext } from './wikipedia.js';
 
-var placeholder = './media/bear-placeholder.svg';
+import { loadImage, showPlaceholder } from './images.js';
 
 function readField(row, field) {
   // A field ends at the next named parameter, not at a pipe inside a wiki link.
@@ -23,7 +23,10 @@ export function extractBears(wikitext) {
   wikitext.split(/\{\{Species table\/row\s*/i).slice(1).forEach(function(row) {
     var name = plainText(readField(row, 'name'));
     var binomial = plainText(readField(row, 'binomial'));
-    if (!name || !binomial || seen.has(binomial)) return;
+    if (!name || !binomial || !plainText(readField(row, 'range'))) {
+      throw new Error('A Wikipedia species row is missing its name, scientific name, or range.');
+    }
+    if (seen.has(binomial)) return;
     seen.add(binomial);
     bears.push({
       name: name,
@@ -32,6 +35,9 @@ export function extractBears(wikitext) {
       range: plainText(readField(row, 'range'))
     });
   });
+  if (bears.length === 0) {
+    throw new Error('No species rows found; the Wikipedia page format may have changed.');
+  }
   return bears;
 }
 
@@ -39,8 +45,7 @@ function renderBear(bear) {
   var card = document.createElement('div');
   card.className = 'bear';
   var image = document.createElement('img');
-  image.src = placeholder;
-  image.alt = 'No image available for ' + bear.name;
+  showPlaceholder(image, bear.name);
   image.width = 200;
   var description = document.createElement('p');
   var name = document.createElement('b');
@@ -53,22 +58,49 @@ function renderBear(bear) {
   return image;
 }
 
-export function initBears() {
-  return fetchBearWikitext().then(function(wikitext) {
+async function loadBearImage(bear, image) {
+  try {
+    if (!bear.fileName) return false;
+    var url = await fetchImageUrl(bear.fileName);
+    if (!url) return false;
+    await loadImage(image, url);
+    image.alt = 'Image of ' + bear.name;
+    return false;
+  } catch (error) {
+    console.error('Image failed for ' + bear.name + ':', error);
+    showPlaceholder(image, bear.name);
+    var message = document.createElement('p');
+    message.textContent = 'Image could not be loaded. A placeholder is shown.';
+    image.after(message);
+    return true;
+  }
+}
+
+export async function initBears() {
+  var status = document.querySelector('.bear-status');
+  var list = document.querySelector('.bear-list');
+  status.textContent = 'Loading bears…';
+  list.replaceChildren();
+  try {
+    var wikitext = await fetchBearWikitext();
     var bears = extractBears(wikitext);
-    document.querySelector('.bear-list').replaceChildren();
     // Create every card in source order before any image requests finish.
     var images = bears.map(renderBear);
-    return bears.reduce(function(previous, bear, index) {
+    status.textContent = 'Bear information loaded. Loading images…';
+    var failedImages = 0;
+    await bears.reduce(function(previous, bear, index) {
       return previous.then(function() {
-        if (!bear.fileName) return;
-        return fetchImageUrl(bear.fileName).then(function(url) {
-          if (url) {
-            images[index].src = url;
-            images[index].alt = 'Image of ' + bear.name;
-          }
-        });
+        return loadBearImage(bear, images[index]);
+      }).then(function(failed) {
+        if (failed) failedImages += 1;
       });
     }, Promise.resolve());
-  });
+    status.textContent = failedImages
+      ? 'Bear information loaded, but ' + failedImages + ' image(s) could not be loaded. Placeholders are shown. Reload the page to try again.'
+      : '';
+  } catch (error) {
+    console.error('Bear list could not be loaded:', error);
+    list.replaceChildren();
+    status.textContent = 'Could not load bear information from Wikipedia. Check your connection and reload the page. If the problem continues, Wikipedia may be unavailable or its page format may have changed.';
+  }
 }
