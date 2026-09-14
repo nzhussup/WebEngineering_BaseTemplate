@@ -5,7 +5,6 @@ var params = {
   action: "parse",
   page: title,
   prop: "wikitext",
-  section: 3,
   format: "json",
   origin: "*"
 };
@@ -26,7 +25,7 @@ export function fetchImageUrl(fileName) {
   }).then(function(data) {
     var pages = data.query.pages;
     var page = Object.values(pages)[0];
-    return page.imageinfo[0].url;
+    return page.imageinfo?.[0]?.url || null;
   });
 }
 

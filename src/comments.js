@@ -1,46 +1,38 @@
 export function initComments() {
-  // Show/hide comments toggle
   var showHideBtn = document.querySelector('.show-hide');
   var commentWrapper = document.querySelector('.comment-wrapper');
-
-  commentWrapper.style.display = 'none';
-
-  showHideBtn.onclick = function() {
-    var showHideText = showHideBtn.textContent;
-    if (showHideText === 'Show comment') { 
-      showHideBtn.textContent = 'Hide comments';
-      commentWrapper.style.display = 'block';
-    } else {
-      showHideBtn.textContent = 'Show comments';
-      commentWrapper.style.display = 'none';
-    }
-  };
-
-  // Comment form stuff
   var form = document.querySelector('.comment-form');
-  var nameField = document.querySelector('#name');
-  var commentField = document.querySelector('#comment');
+  var nameField = form.querySelector('[name="name"]');
+  var commentField = form.querySelector('[name="comment"]');
   var list = document.querySelector('.comment-container');
 
-  form.onsubmit = function(e) {
-    e.preventDefault();
+  showHideBtn.addEventListener('click', function() {
+    commentWrapper.hidden = !commentWrapper.hidden;
+    showHideBtn.textContent = commentWrapper.hidden ? 'Show comments' : 'Hide comments';
+    showHideBtn.setAttribute('aria-expanded', String(!commentWrapper.hidden));
+  });
+
+  [nameField, commentField].forEach(function(field) {
+    field.addEventListener('input', function() {
+      field.setCustomValidity('');
+    });
+  });
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    var name = nameField.value.trim();
+    var comment = commentField.value.trim();
+    nameField.setCustomValidity(name ? '' : 'Enter your name.');
+    commentField.setCustomValidity(comment ? '' : 'Enter a comment.');
+    if (!form.reportValidity()) return;
 
     var listItem = document.createElement('li');
     var namePara = document.createElement('p');
     var commentPara = document.createElement('p');
-    var nameValue = nameField.valeu;
-    var commentValue = commentField.value;
-
-    namePara.textContnet = nameValue;
-    commentPara.textContent = commentValue;
-
-    console.log(nameValue);
-
+    namePara.textContent = name;
+    commentPara.textContent = comment;
+    listItem.append(namePara, commentPara);
     list.appendChild(listItem);
-    listItem.appendChild(namePara);
-    listItem.appendChild(commentPara);
-
-    nameField.value = '';
-    commentField.value = '';
-  };
+    form.reset();
+  });
 }

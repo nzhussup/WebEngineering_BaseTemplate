@@ -1,33 +1,43 @@
 export function initSearch() {
-  // Search highlighter
-  document.querySelector('.search').addEventListener('submit', function(e) {
-    e.preventDefault();
+  var form = document.querySelector('.search');
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    var searchKey = form.querySelector('[name="q"]').value.trim();
 
-    document.querySelectorAll('.highlight').forEach(function(el) {
-      var parent = el.parentNode;
-      parent.replaceChild(document.createTextNode(el.textContent), el);
-      parent.normalize();
-    });
+    document.querySelectorAll('article').forEach(function(article) {
+      article.querySelectorAll('mark.highlight').forEach(function(mark) {
+        var parent = mark.parentNode;
+        mark.replaceWith(document.createTextNode(mark.textContent));
+        parent.normalize();
+      });
+      if (!searchKey) return;
 
-    var searchKey = this.q.value.trim();
-    if (!searchKey) return;
-
-    var regex = new RegExp('(' + searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-
-    function walk(node) {
-      if (node.nodeType === 3) { // Text node
-        var match = node.nodeValue.match(regex);
-        if (match) {
-          var span = document.createElement('span');
-          span.innerHTML = node.nodeValue.replace(regex, '<mark class="highlight">$1</mark>');
-          node.replaceWith.apply(node, span.childNodes);
+      var regex = new RegExp(searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      var walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, {
+        acceptNode: function(node) {
+          return node.parentElement.closest('script, style, form, button')
+            ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
         }
-      } 
-      else if (node.nodeType === 1 && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && node.tagName !== 'FORM') {
-        node.childNodes.forEach(walk);
-      }
-    }
+      });
+      // Collect first: changing the tree while walking it can skip text nodes.
+      var textNodes = [];
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
 
-    walk(document.body);
+      textNodes.forEach(function(node) {
+        var fragment = document.createDocumentFragment();
+        var position = 0;
+        for (var match of node.nodeValue.matchAll(regex)) {
+          fragment.append(document.createTextNode(node.nodeValue.slice(position, match.index)));
+          var mark = document.createElement('mark');
+          mark.className = 'highlight';
+          mark.textContent = match[0];
+          fragment.append(mark);
+          position = match.index + match[0].length;
+        }
+        if (position === 0) return;
+        fragment.append(document.createTextNode(node.nodeValue.slice(position)));
+        node.replaceWith(fragment);
+      });
+    });
   });
 }
