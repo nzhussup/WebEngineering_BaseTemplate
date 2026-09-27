@@ -1,7 +1,10 @@
 import placeholder from '../media/bear-placeholder.svg?url';
 
-export function loadImage(image: HTMLImageElement, url: string): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
+export async function loadImage(
+  image: HTMLImageElement,
+  url: string
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
       finish(new Error('Image loading timed out: ' + url));
     }, 15000);
@@ -10,15 +13,17 @@ export function loadImage(image: HTMLImageElement, url: string): Promise<void> {
       clearTimeout(timer);
       image.removeEventListener('load', onLoad);
       image.removeEventListener('error', onError);
-      if (error) reject(error);
+      if (error !== null) reject(error);
       else resolve();
     }
 
-    function onLoad() {
-      finish(image.naturalWidth > 0 ? null : new Error('Image is empty: ' + url));
+    function onLoad(): void {
+      finish(
+        image.naturalWidth > 0 ? null : new Error('Image is empty: ' + url)
+      );
     }
 
-    function onError() {
+    function onError(): void {
       finish(new Error('Could not load image: ' + url));
     }
 
@@ -34,7 +39,10 @@ export function showPlaceholder(image: HTMLImageElement, name: string): void {
   image.alt = 'No image available for ' + name;
 }
 
-export function showImageError(image: HTMLImageElement, description: string): void {
+export function showImageError(
+  image: HTMLImageElement,
+  description: string
+): void {
   showPlaceholder(image, description);
   const message = document.createElement('p');
   message.setAttribute('role', 'status');
@@ -42,14 +50,19 @@ export function showImageError(image: HTMLImageElement, description: string): vo
   image.after(message);
 }
 
-export async function initImages() {
-  await Promise.all(Array.from(document.querySelectorAll<HTMLImageElement>('article img'), async (image) => {
-    const description = image.alt;
-    try {
-      await loadImage(image, image.src);
-    } catch (error) {
-      console.error('Article image failed:', error);
-      showImageError(image, description);
-    }
-  }));
+export async function initImages(): Promise<void> {
+  await Promise.all(
+    Array.from(
+      document.querySelectorAll<HTMLImageElement>('article img'),
+      async (image) => {
+        const description = image.alt;
+        try {
+          await loadImage(image, image.src);
+        } catch (error) {
+          console.error('Article image failed:', error);
+          showImageError(image, description);
+        }
+      }
+    )
+  );
 }

@@ -10,17 +10,23 @@ function createComment(name: string, comment: string): HTMLLIElement {
   return listItem;
 }
 
-export function initComments() {
+export function initComments(): void {
   const toggleButton = requireElement('.show-hide', HTMLButtonElement);
   const commentWrapper = requireElement('.comment-wrapper', HTMLDivElement);
   const form = requireElement('.comment-form', HTMLFormElement);
   const nameField = requireElement('[name="name"]', HTMLInputElement, form);
-  const commentField = requireElement('[name="comment"]', HTMLInputElement, form);
+  const commentField = requireElement(
+    '[name="comment"]',
+    HTMLInputElement,
+    form
+  );
   const list = requireElement('.comment-container', HTMLUListElement);
 
   toggleButton.addEventListener('click', () => {
     commentWrapper.hidden = !commentWrapper.hidden;
-    toggleButton.textContent = commentWrapper.hidden ? 'Show comments' : 'Hide comments';
+    toggleButton.textContent = commentWrapper.hidden
+      ? 'Show comments'
+      : 'Hide comments';
     toggleButton.setAttribute('aria-expanded', String(!commentWrapper.hidden));
   });
 
@@ -34,8 +40,8 @@ export function initComments() {
     event.preventDefault();
     const name = nameField.value.trim();
     const comment = commentField.value.trim();
-    nameField.setCustomValidity(name ? '' : 'Enter your name.');
-    commentField.setCustomValidity(comment ? '' : 'Enter a comment.');
+    nameField.setCustomValidity(name !== '' ? '' : 'Enter your name.');
+    commentField.setCustomValidity(comment !== '' ? '' : 'Enter a comment.');
     if (!form.reportValidity()) return;
 
     list.append(createComment(name, comment));

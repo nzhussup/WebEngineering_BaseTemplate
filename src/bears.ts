@@ -5,7 +5,9 @@ import { loadImage, showPlaceholder, showImageError } from './images.ts';
 
 function readField(row: string, field: string): string {
   // A field ends at the next named parameter, not at a pipe inside a wiki link.
-  const match = row.match(new RegExp('\\|\\s*' + field + '\\s*=([\\s\\S]*?)(?=\\|\\s*[\\w-]+\\s*=|$)'));
+  const match = row.match(
+    new RegExp('\\|\\s*' + field + '\\s*=([\\s\\S]*?)(?=\\|\\s*[\\w-]+\\s*=|$)')
+  );
   return match?.[1]?.trim() ?? '';
 }
 
@@ -21,24 +23,31 @@ function plainText(value: string): string {
 export function extractBears(wikitext: string): Bear[] {
   const bears: Bear[] = [];
   const seen = new Set<string>();
-  wikitext.split(/\{\{Species table\/row\s*/i).slice(1).forEach((row) => {
-    const name = plainText(readField(row, 'name'));
-    const binomial = plainText(readField(row, 'binomial'));
-    const range = plainText(readField(row, 'range'));
-    if (!name || !binomial || !range) {
-      throw new Error('A Wikipedia species row is missing its name, scientific name, or range.');
-    }
-    if (seen.has(binomial)) return;
-    seen.add(binomial);
-    bears.push({
-      name,
-      binomial,
-      fileName: readField(row, 'image').replace(/^File:/i, ''),
-      range
+  wikitext
+    .split(/\{\{Species table\/row\s*/i)
+    .slice(1)
+    .forEach((row) => {
+      const name = plainText(readField(row, 'name'));
+      const binomial = plainText(readField(row, 'binomial'));
+      const range = plainText(readField(row, 'range'));
+      if (name === '' || binomial === '' || range === '') {
+        throw new Error(
+          'A Wikipedia species row is missing its name, scientific name, or range.'
+        );
+      }
+      if (seen.has(binomial)) return;
+      seen.add(binomial);
+      bears.push({
+        name,
+        binomial,
+        fileName: readField(row, 'image').replace(/^File:/i, ''),
+        range,
+      });
     });
-  });
   if (bears.length === 0) {
-    throw new Error('No species rows found; the Wikipedia page format may have changed.');
+    throw new Error(
+      'No species rows found; the Wikipedia page format may have changed.'
+    );
   }
   return bears;
 }
@@ -59,11 +68,14 @@ function createBearCard(bear: Bear): BearCard {
   return { bear, card, image };
 }
 
-async function loadBearImage(bear: Bear, image: HTMLImageElement): Promise<boolean> {
+async function loadBearImage(
+  bear: Bear,
+  image: HTMLImageElement
+): Promise<boolean> {
   try {
-    if (!bear.fileName) return false;
+    if (bear.fileName === '') return false;
     const url = await fetchImageUrl(bear.fileName);
-    if (!url) return false;
+    if (url === null) return false;
     await loadImage(image, url);
     image.alt = 'Image of ' + bear.name;
     return false;
@@ -74,7 +86,7 @@ async function loadBearImage(bear: Bear, image: HTMLImageElement): Promise<boole
   }
 }
 
-export async function initBears() {
+export async function initBears(): Promise<void> {
   const status = requireElement('.bear-status', HTMLParagraphElement);
   const list = requireElement('.bear-list', HTMLDivElement);
   status.textContent = 'Loading bears…';
@@ -85,19 +97,25 @@ export async function initBears() {
     // Create every card in source order before any image requests finish.
     const entries = bears.map(createBearCard);
     const fragment = document.createDocumentFragment();
-    entries.forEach(({ card }) => fragment.append(card));
+    entries.forEach(({ card }) => {
+      fragment.append(card);
+    });
     list.replaceChildren(fragment);
     status.textContent = 'Bear information loaded. Loading images…';
     const imageFailures = await Promise.all(
-      entries.map(({ bear, image }) => loadBearImage(bear, image))
+      entries.map(async ({ bear, image }) => await loadBearImage(bear, image))
     );
     const failedImages = imageFailures.filter(Boolean).length;
-    status.textContent = failedImages
-      ? 'Bear information loaded, but ' + failedImages + ' image(s) could not be loaded. Placeholders are shown. Reload the page to try again.'
-      : '';
+    status.textContent =
+      failedImages > 0
+        ? 'Bear information loaded, but ' +
+          failedImages +
+          ' image(s) could not be loaded. Placeholders are shown. Reload the page to try again.'
+        : '';
   } catch (error) {
     console.error('Bear list could not be loaded:', error);
     list.replaceChildren();
-    status.textContent = 'Could not load bear information from Wikipedia. Check your connection and reload the page. If the problem continues, Wikipedia may be unavailable or its page format may have changed.';
+    status.textContent =
+      'Could not load bear information from Wikipedia. Check your connection and reload the page. If the problem continues, Wikipedia may be unavailable or its page format may have changed.';
   }
 }

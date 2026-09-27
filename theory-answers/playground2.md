@@ -28,3 +28,13 @@ if (!isRecord(data)) {
 ```
 
 The request layer validates wikitext and image URLs. The parser checks required species fields before constructing a `Bear`. Strict compilation catches code mistakes; runtime validation catches unexpected external data.
+
+## Task 3: Add static analysis and formatting
+
+| Tool | Checks | Project example |
+| --- | --- | --- |
+| ESLint | Risky patterns and coding rules, including type-aware rules. | Reported the unhandled `initImages()` and `initBears()` promises. Startup now awaits both inside `try`/`catch`. |
+| Prettier | Layout: indentation, quotes, semicolons, and line wrapping. | Wrapped the long request URL expression in `wikipedia.ts` using the required 80-column setting. It does not check whether requests work. |
+| TypeScript | Type compatibility and possible missing/null values. | Caught `mark.textContent` being passed to `createTextNode()` as `string \| null`. `?? ''` now provides a string. |
+
+These tools overlap, but serve different purposes. Formatting cannot detect a wrong type; type checking does not enforce all coding rules. None replaces runtime validation or browser checks. The Prettier ESLint preset avoids conflicting formatting rules. [Plugin documentation](https://github.com/prettier/eslint-plugin-prettier#configuration-legacy-eslintrc).

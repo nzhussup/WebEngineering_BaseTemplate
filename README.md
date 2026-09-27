@@ -29,6 +29,25 @@ npm run preview
 `npm run build` runs that check before bundling. Preview serves the
 build locally; publishing `dist/` to a host is a separate deployment step.
 
+## Code quality
+
+```sh
+npm run lint
+npm run format:check
+```
+
+Use `npm run lint:fix` for automatic lint fixes and `npm run format` to format
+source files. Both tools cover JavaScript and TypeScript in `src/`.
+
+The course's `standard-with-typescript` preset requires ESLint 8 and
+TypeScript-ESLint 6. This project pins TypeScript 5.3.3 because that parser supports
+TypeScript versions below 5.4. The preset is deprecated upstream but retained to
+match the assignment. No project rules are disabled. The required Prettier preset
+turns off conflicting formatting rules so Prettier controls layout.
+
+A scoped npm override updates the parser's `minimatch` dependency to 9.0.9,
+fixing the reported vulnerable 9.0.x version while retaining the required preset.
+
 ## Submission Details and Deadlines
 * Coding playgrounds are **individual** work
 * Use this base template to create your project repository.

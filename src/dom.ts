@@ -1,6 +1,6 @@
 export function requireElement<T extends Element>(
   selector: string,
-  elementType: { new (): T },
+  elementType: new () => T,
   root: ParentNode = document
 ): T {
   const element = root.querySelector(selector);
