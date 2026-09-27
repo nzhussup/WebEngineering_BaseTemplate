@@ -1,13 +1,15 @@
-import { fetchImageUrl, fetchBearWikitext } from './wikipedia.js';
-import { loadImage, showPlaceholder, showImageError } from './images.js';
+import type { Bear, BearCard } from './types.ts';
+import { requireElement } from './dom.ts';
+import { fetchImageUrl, fetchBearWikitext } from './wikipedia.ts';
+import { loadImage, showPlaceholder, showImageError } from './images.ts';
 
-function readField(row, field) {
+function readField(row: string, field: string): string {
   // A field ends at the next named parameter, not at a pipe inside a wiki link.
   const match = row.match(new RegExp('\\|\\s*' + field + '\\s*=([\\s\\S]*?)(?=\\|\\s*[\\w-]+\\s*=|$)'));
-  return match ? match[1].trim() : '';
+  return match?.[1]?.trim() ?? '';
 }
 
-function plainText(value) {
+function plainText(value: string): string {
   return value
     .replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, '$1')
     .replace(/<ref\b[^>]*\/>|<ref\b[^>]*>[\s\S]*?<\/ref>/gi, '')
@@ -16,9 +18,9 @@ function plainText(value) {
     .trim();
 }
 
-export function extractBears(wikitext) {
-  const bears = [];
-  const seen = new Set();
+export function extractBears(wikitext: string): Bear[] {
+  const bears: Bear[] = [];
+  const seen = new Set<string>();
   wikitext.split(/\{\{Species table\/row\s*/i).slice(1).forEach((row) => {
     const name = plainText(readField(row, 'name'));
     const binomial = plainText(readField(row, 'binomial'));
@@ -41,7 +43,7 @@ export function extractBears(wikitext) {
   return bears;
 }
 
-function createBearCard(bear) {
+function createBearCard(bear: Bear): BearCard {
   const card = document.createElement('div');
   card.className = 'bear';
   const image = document.createElement('img');
@@ -57,7 +59,7 @@ function createBearCard(bear) {
   return { bear, card, image };
 }
 
-async function loadBearImage(bear, image) {
+async function loadBearImage(bear: Bear, image: HTMLImageElement): Promise<boolean> {
   try {
     if (!bear.fileName) return false;
     const url = await fetchImageUrl(bear.fileName);
@@ -73,8 +75,8 @@ async function loadBearImage(bear, image) {
 }
 
 export async function initBears() {
-  const status = document.querySelector('.bear-status');
-  const list = document.querySelector('.bear-list');
+  const status = requireElement('.bear-status', HTMLParagraphElement);
+  const list = requireElement('.bear-list', HTMLDivElement);
   status.textContent = 'Loading bears…';
   list.replaceChildren();
   try {

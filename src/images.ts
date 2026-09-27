@@ -1,12 +1,12 @@
 import placeholder from '../media/bear-placeholder.svg?url';
 
-export function loadImage(image, url) {
-  return new Promise((resolve, reject) => {
+export function loadImage(image: HTMLImageElement, url: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
       finish(new Error('Image loading timed out: ' + url));
     }, 15000);
 
-    function finish(error) {
+    function finish(error: Error | null): void {
       clearTimeout(timer);
       image.removeEventListener('load', onLoad);
       image.removeEventListener('error', onError);
@@ -28,13 +28,13 @@ export function loadImage(image, url) {
   });
 }
 
-export function showPlaceholder(image, name) {
+export function showPlaceholder(image: HTMLImageElement, name: string): void {
   // The failed image's listeners have been removed, so fallback cannot loop.
   image.src = placeholder;
   image.alt = 'No image available for ' + name;
 }
 
-export function showImageError(image, description) {
+export function showImageError(image: HTMLImageElement, description: string): void {
   showPlaceholder(image, description);
   const message = document.createElement('p');
   message.setAttribute('role', 'status');
@@ -43,7 +43,7 @@ export function showImageError(image, description) {
 }
 
 export async function initImages() {
-  await Promise.all(Array.from(document.querySelectorAll('article img'), async (image) => {
+  await Promise.all(Array.from(document.querySelectorAll<HTMLImageElement>('article img'), async (image) => {
     const description = image.alt;
     try {
       await loadImage(image, image.src);

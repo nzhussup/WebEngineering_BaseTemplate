@@ -22,9 +22,11 @@ npm run build
 npm run preview
 ```
 
-`index.html`, `src/`, `style.css`, and `media/` are source files. Vite generates
+`index.html`, TypeScript in `src/`, `style.css`, and `media/` are source files. Vite generates
 `dist/`; do not edit or commit it. Commit `package.json`, `package-lock.json`, and
-`vite.config.js`. `npm ci` installs the locked dependencies. Preview serves the
+`vite.config.js`. `npm ci` installs the locked dependencies.
+`npm run typecheck` checks strict TypeScript types without generating files;
+`npm run build` runs that check before bundling. Preview serves the
 build locally; publishing `dist/` to a host is a separate deployment step.
 
 ## Submission Details and Deadlines

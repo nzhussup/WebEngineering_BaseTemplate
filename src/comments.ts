@@ -1,4 +1,6 @@
-function createComment(name, comment) {
+import { requireElement } from './dom.ts';
+
+function createComment(name: string, comment: string): HTMLLIElement {
   const listItem = document.createElement('li');
   const namePara = document.createElement('p');
   const commentPara = document.createElement('p');
@@ -9,12 +11,12 @@ function createComment(name, comment) {
 }
 
 export function initComments() {
-  const toggleButton = document.querySelector('.show-hide');
-  const commentWrapper = document.querySelector('.comment-wrapper');
-  const form = document.querySelector('.comment-form');
-  const nameField = form.querySelector('[name="name"]');
-  const commentField = form.querySelector('[name="comment"]');
-  const list = document.querySelector('.comment-container');
+  const toggleButton = requireElement('.show-hide', HTMLButtonElement);
+  const commentWrapper = requireElement('.comment-wrapper', HTMLDivElement);
+  const form = requireElement('.comment-form', HTMLFormElement);
+  const nameField = requireElement('[name="name"]', HTMLInputElement, form);
+  const commentField = requireElement('[name="comment"]', HTMLInputElement, form);
+  const list = requireElement('.comment-container', HTMLUListElement);
 
   toggleButton.addEventListener('click', () => {
     commentWrapper.hidden = !commentWrapper.hidden;
