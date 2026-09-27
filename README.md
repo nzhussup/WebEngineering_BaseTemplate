@@ -6,6 +6,27 @@ The project is based on [this](https://developer.mozilla.org/en-US/docs/Learn/Ac
 The project introduces a lot of code smells for you to tackle. 
 **Let's get coding!**
 
+## Run locally
+
+Use Node.js `^20.19.0 || >=22.12.0` and npm.
+
+```sh
+npm ci
+npm run dev
+```
+
+Build and preview the production output:
+
+```sh
+npm run build
+npm run preview
+```
+
+`index.html`, `src/`, `style.css`, and `media/` are source files. Vite generates
+`dist/`; do not edit or commit it. Commit `package.json`, `package-lock.json`, and
+`vite.config.js`. `npm ci` installs the locked dependencies. Preview serves the
+build locally; publishing `dist/` to a host is a separate deployment step.
+
 ## Submission Details and Deadlines
 * Coding playgrounds are **individual** work
 * Use this base template to create your project repository.

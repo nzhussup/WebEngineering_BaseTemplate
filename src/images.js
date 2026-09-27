@@ -1,4 +1,4 @@
-const placeholder = './media/bear-placeholder.svg';
+import placeholder from '../media/bear-placeholder.svg?url';
 
 export function loadImage(image, url) {
   return new Promise((resolve, reject) => {
