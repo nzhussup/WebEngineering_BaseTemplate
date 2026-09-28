@@ -46,3 +46,11 @@ npm scripts give developers and CI the same named commands. Neither needs to rem
 Commands compose through exit codes: `0` means success; non-zero means failure. `check` uses `&&` to run lint, formatting checks, and the build in order, stopping at the first failure. The build itself stops before bundling if TypeScript fails.
 
 **Idempotence** means repeating an operation has the same effect as running it once. `format` and `lint:fix` should leave already-fixed files unchanged. `lint`, `format:check`, and `typecheck` do not modify source and should report the same result for unchanged input. With unchanged source and tools, `build` should regenerate equivalent output without accumulating stale files. `check` inherits those properties. `dev` and `preview` start long-running servers; starting a second instance is not an idempotent file operation.
+
+## Task 5: Enforce quality before integration
+
+A pre-commit hook gives fast feedback before a local commit. Husky connects Git to the hook; lint-staged selects staged source files and passes them to ESLint and Prettier. A failed check blocks the commit. Local hooks can be skipped or not installed, so they cannot enforce a shared standard alone. [Husky documentation](https://typicode.github.io/husky/how-to.html).
+
+CI checks the pushed code in a fresh environment, installs dependencies with `npm ci`, and checks the whole project. This catches cross-file issues that a staged-file check might miss. Making the CI status required in branch protection prevents merging failed changes.
+
+CI should report failures rather than rewrite source: the result must describe the submitted commit, not an automatically altered version. Developers fix problems locally and submit the corrections for review. Our workflow uses lint, formatting checks, and a build that checks types first. It generates `dist/` but leaves source unchanged.

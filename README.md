@@ -8,7 +8,7 @@ The project introduces a lot of code smells for you to tackle.
 
 ## Run locally
 
-Use Node.js `^20.19.0 || >=22.12.0` and npm.
+Use Node.js 22.22.1 or newer and npm (CI uses Node.js 24).
 
 ```sh
 npm ci
@@ -65,6 +65,25 @@ turns off conflicting formatting rules so Prettier controls layout.
 
 A scoped npm override updates the parser's `minimatch` dependency to 9.0.9,
 fixing the reported vulnerable 9.0.x version while retaining the required preset.
+
+## Pre-commit and CI
+
+After installing dependencies, Husky's `prepare` script activates the local hook.
+For an existing installation, run `npm run prepare` once. This sets Git's local
+hook path; no commit is created.
+
+The pre-commit hook runs `npm run lint:staged`: ESLint and Prettier check only
+staged `.js` and `.ts` files in `src/`. Checks do not auto-fix code. If one fails,
+fix it, stage the correction, and commit again. Type checking covers the whole
+project in CI because files depend on each other.
+
+`.github/workflows/quality.yml` runs on every push and pull request. It installs
+from the lockfile, then checks lint, formatting, types, and the production build.
+`build` already runs `typecheck` first. CI uses no source-fixing commands; only
+`dist/` is generated. Hooks are disabled in CI with `HUSKY=0`.
+
+To enforce the result before merging, make the **Lint, format, types and build**
+status check required in GitHub branch protection or a ruleset.
 
 ## Submission Details and Deadlines
 * Coding playgrounds are **individual** work

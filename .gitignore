@@ -27,3 +27,6 @@ build
 coverage
 
 internal/
+
+# Generated Husky hook wrappers
+.husky/_/
