@@ -38,3 +38,11 @@ The request layer validates wikitext and image URLs. The parser checks required 
 | TypeScript | Type compatibility and possible missing/null values. | Caught `mark.textContent` being passed to `createTextNode()` as `string \| null`. `?? ''` now provides a string. |
 
 These tools overlap, but serve different purposes. Formatting cannot detect a wrong type; type checking does not enforce all coding rules. None replaces runtime validation or browser checks. The Prettier ESLint preset avoids conflicting formatting rules. [Plugin documentation](https://github.com/prettier/eslint-plugin-prettier#configuration-legacy-eslintrc).
+
+## Task 4: Provide a consistent command interface
+
+npm scripts give developers and CI the same named commands. Neither needs to remember tool flags or paths. We can change the implementation while keeping names such as `build` and `lint` stable.
+
+Commands compose through exit codes: `0` means success; non-zero means failure. `check` uses `&&` to run lint, formatting checks, and the build in order, stopping at the first failure. The build itself stops before bundling if TypeScript fails.
+
+**Idempotence** means repeating an operation has the same effect as running it once. `format` and `lint:fix` should leave already-fixed files unchanged. `lint`, `format:check`, and `typecheck` do not modify source and should report the same result for unchanged input. With unchanged source and tools, `build` should regenerate equivalent output without accumulating stale files. `check` inherits those properties. `dev` and `preview` start long-running servers; starting a second instance is not an idempotent file operation.

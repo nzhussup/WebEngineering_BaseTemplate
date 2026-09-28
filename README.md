@@ -39,6 +39,24 @@ npm run format:check
 Use `npm run lint:fix` for automatic lint fixes and `npm run format` to format
 source files. Both tools cover JavaScript and TypeScript in `src/`.
 
+Run `npm run check` to lint, check formatting, then type-check and build. The
+sequence stops at the first failure. It does not rewrite source files; the build
+regenerates `dist/`.
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server. |
+| `npm run build` | Check TypeScript, then create the production build. |
+| `npm run lint` | Check all `.js` and `.ts` files recursively in `src/`; warnings also fail. |
+| `npm run lint:fix` | Apply available ESLint fixes; report remaining issues. |
+| `npm run format` | Format all `.js` and `.ts` source files. |
+| `npm run format:check` | Report formatting differences without rewriting files. |
+| `npm run typecheck` | Check TypeScript without generating output. |
+| `npm run check` | Run the source checks and production build in sequence. |
+| `npm run preview` | Serve the existing production build locally. |
+
+Failing checks exit with a non-zero status so scripts and CI can detect failure.
+
 The course's `standard-with-typescript` preset requires ESLint 8 and
 TypeScript-ESLint 6. This project pins TypeScript 5.3.3 because that parser supports
 TypeScript versions below 5.4. The preset is deprecated upstream but retained to
