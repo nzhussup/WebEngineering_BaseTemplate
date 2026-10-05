@@ -1,7 +1,4 @@
-import type { Bear, BearCard } from './types.ts';
-import { requireElement } from './dom.ts';
-import { fetchImageUrl, fetchBearWikitext } from './wikipedia.ts';
-import { loadImage, showPlaceholder, showImageError } from './images.ts';
+import type { Bear } from './types.ts';
 
 function readField(row: string, field: string): string {
   // A field ends at the next named parameter, not at a pipe inside a wiki link.
@@ -50,72 +47,4 @@ export function extractBears(wikitext: string): Bear[] {
     );
   }
   return bears;
-}
-
-function createBearCard(bear: Bear): BearCard {
-  const card = document.createElement('div');
-  card.className = 'bear';
-  const image = document.createElement('img');
-  showPlaceholder(image, bear.name);
-  image.width = 200;
-  const description = document.createElement('p');
-  const name = document.createElement('b');
-  name.textContent = bear.name;
-  description.append(name, ' (' + bear.binomial + ')');
-  const range = document.createElement('p');
-  range.textContent = 'Range: ' + bear.range;
-  card.append(image, description, range);
-  return { bear, card, image };
-}
-
-async function loadBearImage(
-  bear: Bear,
-  image: HTMLImageElement
-): Promise<boolean> {
-  try {
-    if (bear.fileName === '') return false;
-    const url = await fetchImageUrl(bear.fileName);
-    if (url === null) return false;
-    await loadImage(image, url);
-    image.alt = 'Image of ' + bear.name;
-    return false;
-  } catch (error) {
-    console.error('Image failed for ' + bear.name + ':', error);
-    showImageError(image, bear.name);
-    return true;
-  }
-}
-
-export async function initBears(root: ParentNode = document): Promise<void> {
-  const status = requireElement('.bear-status', HTMLParagraphElement, root);
-  const list = requireElement('.bear-list', HTMLDivElement, root);
-  status.textContent = 'Loading bears…';
-  list.replaceChildren();
-  try {
-    const wikitext = await fetchBearWikitext();
-    const bears = extractBears(wikitext);
-    // Create every card in source order before any image requests finish.
-    const entries = bears.map(createBearCard);
-    const fragment = document.createDocumentFragment();
-    entries.forEach(({ card }) => {
-      fragment.append(card);
-    });
-    list.replaceChildren(fragment);
-    status.textContent = 'Bear information loaded. Loading images…';
-    const imageFailures = await Promise.all(
-      entries.map(async ({ bear, image }) => await loadBearImage(bear, image))
-    );
-    const failedImages = imageFailures.filter(Boolean).length;
-    status.textContent =
-      failedImages > 0
-        ? 'Bear information loaded, but ' +
-          failedImages +
-          ' image(s) could not be loaded. Placeholders are shown. Reload the page to try again.'
-        : '';
-  } catch (error) {
-    console.error('Bear list could not be loaded:', error);
-    list.replaceChildren();
-    status.textContent =
-      'Could not load bear information from Wikipedia. Check your connection and reload the page. If the problem continues, Wikipedia may be unavailable or its page format may have changed.';
-  }
 }

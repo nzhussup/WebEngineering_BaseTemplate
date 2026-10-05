@@ -4,9 +4,3 @@ export interface Bear {
   readonly fileName: string;
   readonly range: string;
 }
-
-export interface BearCard {
-  readonly bear: Bear;
-  readonly card: HTMLDivElement;
-  readonly image: HTMLImageElement;
-}

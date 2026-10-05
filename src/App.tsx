@@ -1,16 +1,24 @@
+import { useState } from 'react';
 import type { ReactElement } from 'react';
-import { LegacyContent } from './LegacyContent.tsx';
+import {
+  Header,
+  Navigation,
+  RelatedLinks,
+  Footer,
+} from './components/layout/PageLayout.tsx';
+import { WildlifeArticle } from './components/article/WildlifeArticle.tsx';
 
 export function App(): ReactElement {
+  const [query, setQuery] = useState('');
   return (
     <>
-      <header className="header">
-        <h1>Welcome to our wildlife website</h1>
-      </header>
-      <LegacyContent />
-      <footer>
-        <p>©Copyright 2050 by nobody. All rights reversed.</p>
-      </footer>
+      <Header />
+      <Navigation onSearch={setQuery} />
+      <main>
+        <WildlifeArticle query={query} />
+        <RelatedLinks />
+      </main>
+      <Footer />
     </>
   );
 }

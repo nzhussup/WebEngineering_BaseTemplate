@@ -87,11 +87,12 @@ status check required in GitHub branch protection or a ruleset.
 
 ## React migration
 
-`src/main.tsx` mounts `App` in `#root`. The React shell currently uses a temporary
-`LegacyContent` host to preserve Playground 2 behavior while later tasks migrate
-individual features. React owns the empty host; legacy code exclusively manages
-its children. Type checking, linting, formatting, and staged-file checks include
-TSX/JSX. The existing CI workflow uses these updated commands.
+`src/main.tsx` mounts `App` in `#root`. Components in `src/components/` are
+organised by layout, article, search, comments, bears, and shared image handling.
+The legacy HTML host has been removed. Typed props connect the features; bear
+cards use scientific names as stable keys. Type checking, linting, formatting,
+and staged-file checks include TSX/JSX. CI uses the same commands.
+
 
 ## Submission Details and Deadlines
 * Coding playgrounds are **individual** work
