@@ -10,17 +10,21 @@ function createComment(name: string, comment: string): HTMLLIElement {
   return listItem;
 }
 
-export function initComments(): void {
-  const toggleButton = requireElement('.show-hide', HTMLButtonElement);
-  const commentWrapper = requireElement('.comment-wrapper', HTMLDivElement);
-  const form = requireElement('.comment-form', HTMLFormElement);
+export function initComments(root: ParentNode = document): void {
+  const toggleButton = requireElement('.show-hide', HTMLButtonElement, root);
+  const commentWrapper = requireElement(
+    '.comment-wrapper',
+    HTMLDivElement,
+    root
+  );
+  const form = requireElement('.comment-form', HTMLFormElement, root);
   const nameField = requireElement('[name="name"]', HTMLInputElement, form);
   const commentField = requireElement(
     '[name="comment"]',
     HTMLInputElement,
     form
   );
-  const list = requireElement('.comment-container', HTMLUListElement);
+  const list = requireElement('.comment-container', HTMLUListElement, root);
 
   toggleButton.addEventListener('click', () => {
     commentWrapper.hidden = !commentWrapper.hidden;

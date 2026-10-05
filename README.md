@@ -47,9 +47,9 @@ regenerates `dist/`.
 | --- | --- |
 | `npm run dev` | Start the development server. |
 | `npm run build` | Check TypeScript, then create the production build. |
-| `npm run lint` | Check all `.js` and `.ts` files recursively in `src/`; warnings also fail. |
+| `npm run lint` | Check all `.js`, `.jsx`, `.ts`, and `.tsx` files recursively in `src/`; warnings also fail. |
 | `npm run lint:fix` | Apply available ESLint fixes; report remaining issues. |
-| `npm run format` | Format all `.js` and `.ts` source files. |
+| `npm run format` | Format all `.js`, `.jsx`, `.ts`, and `.tsx` source files. |
 | `npm run format:check` | Report formatting differences without rewriting files. |
 | `npm run typecheck` | Check TypeScript without generating output. |
 | `npm run check` | Run the source checks and production build in sequence. |
@@ -73,7 +73,7 @@ For an existing installation, run `npm run prepare` once. This sets Git's local
 hook path; no commit is created.
 
 The pre-commit hook runs `npm run lint:staged`: ESLint and Prettier check only
-staged `.js` and `.ts` files in `src/`. Checks do not auto-fix code. If one fails,
+staged `.js`, `.jsx`, `.ts`, and `.tsx` files in `src/`. Checks do not auto-fix code. If one fails,
 fix it, stage the correction, and commit again. Type checking covers the whole
 project in CI because files depend on each other.
 
@@ -84,6 +84,14 @@ from the lockfile, then checks lint, formatting, types, and the production build
 
 To enforce the result before merging, make the **Lint, format, types and build**
 status check required in GitHub branch protection or a ruleset.
+
+## React migration
+
+`src/main.tsx` mounts `App` in `#root`. The React shell currently uses a temporary
+`LegacyContent` host to preserve Playground 2 behavior while later tasks migrate
+individual features. React owns the empty host; legacy code exclusively manages
+its children. Type checking, linting, formatting, and staged-file checks include
+TSX/JSX. The existing CI workflow uses these updated commands.
 
 ## Submission Details and Deadlines
 * Coding playgrounds are **individual** work
@@ -214,9 +222,9 @@ Define the following tasks within `npm scripts`:
 
   * `dev`: starts the development server.
   * `build`: runs the typescript compiler and bundles your application - bundling depends on your chosen build tool (e.g. Vite, Webpack) but typically bundles multiple files into one, applies optimizations like minification and obfuscation and outputs final results to a `dist` or `build` directory.
-  * `lint`: runs ESLint on all  `.js` and `.ts` files in your projects `/src` directory.
+  * `lint`: runs ESLint on all  `.js`, `.jsx`, `.ts`, and `.tsx` files in your projects `/src` directory.
   * `lint:fix`: runs and also fixes all issues found by ESLint.
-  * `format`: formats all `.js` and `.ts` files in your projects `/src` directory.
+  * `format`: formats all `.js`, `.jsx`, `.ts`, and `.tsx` files in your projects `/src` directory.
   * `format:check`: checks if the files in the `/src` directory are formatted according to Prettier's rules.
 
 The `build`, `lint`, and `format:check` commands must exit with a non-zero status when their checks fail.

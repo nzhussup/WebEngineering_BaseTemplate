@@ -50,10 +50,10 @@ export function showImageError(
   image.after(message);
 }
 
-export async function initImages(): Promise<void> {
+export async function initImages(root: ParentNode = document): Promise<void> {
   await Promise.all(
     Array.from(
-      document.querySelectorAll<HTMLImageElement>('article img'),
+      root.querySelectorAll<HTMLImageElement>('article img'),
       async (image) => {
         const description = image.alt;
         try {

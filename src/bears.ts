@@ -86,9 +86,9 @@ async function loadBearImage(
   }
 }
 
-export async function initBears(): Promise<void> {
-  const status = requireElement('.bear-status', HTMLParagraphElement);
-  const list = requireElement('.bear-list', HTMLDivElement);
+export async function initBears(root: ParentNode = document): Promise<void> {
+  const status = requireElement('.bear-status', HTMLParagraphElement, root);
+  const list = requireElement('.bear-list', HTMLDivElement, root);
   status.textContent = 'Loading bears…';
   list.replaceChildren();
   try {

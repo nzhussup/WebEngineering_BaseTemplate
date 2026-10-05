@@ -42,10 +42,10 @@ function highlightText(node: Text, regex: RegExp): void {
   node.replaceWith(fragment);
 }
 
-export function initSearch(): void {
-  const form = requireElement('.search', HTMLFormElement);
+export function initSearch(root: ParentNode = document): void {
+  const form = requireElement('.search', HTMLFormElement, root);
   const queryField = requireElement('[name="q"]', HTMLInputElement, form);
-  const articles = document.querySelectorAll('article');
+  const articles = root.querySelectorAll('article');
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const searchKey = queryField.value.trim();
