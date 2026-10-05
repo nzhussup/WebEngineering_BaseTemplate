@@ -29,3 +29,13 @@ Controlled inputs use `value` from state and `onChange` to update it. Successful
 Direct mutation changes an existing object without giving React a new reference. React may skip an update, and previous state snapshots can be changed unexpectedly. We append comments with `setComments(previous => [...previous, comment])`. The new array preserves old state; the functional update uses the latest pending value.
 
 Lift state to the nearest ancestor shared by its consumers. `App` owns the applied query because navigation submits it and the article uses it. Comment state stays in `CommentsSection`; input drafts stay in their forms. Props are clear over these short paths. Context is useful when many distant components need the same value; it would add unnecessary indirection here.
+
+## Task 4: Load and represent remote data
+
+Rendering calculates UI from props and state. Fetching contacts an external system, takes time, and can fail. Starting requests during render would make rendering impure and could send duplicate requests when React renders again. `useEffect` starts this synchronization after a commit.
+
+Our `useBears` hook stores a discriminated union: `loading`, `success`, `empty`, or `error`. Only success contains bears; only error contains a message. A valid table without rows is empty. A failed request or unrecognised page format is an error, not an empty result.
+
+Requests can finish out of order: request A starts, the user reloads, request B finishes, then A finishes. Without protection, A could replace B's newer result. Reload and effect cleanup abort the old requests. An active-effect check also rejects late results if cancellation is ignored or the response has already arrived. Cleanup runs before the next effect and on unmount.
+
+Image checks use the same cleanup pattern. Aborting removes listeners and timers; missing or failed images show a placeholder without discarding valid bear data. Errors from cancelled work are ignored because that work no longer belongs to the current UI.

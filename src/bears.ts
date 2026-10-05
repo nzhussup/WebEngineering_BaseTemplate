@@ -41,7 +41,10 @@ export function extractBears(wikitext: string): Bear[] {
         range,
       });
     });
-  if (bears.length === 0) {
+  if (
+    bears.length === 0 &&
+    !/\{\{Species table(?=\s|\||\}\})/i.test(wikitext)
+  ) {
     throw new Error(
       'No species rows found; the Wikipedia page format may have changed.'
     );

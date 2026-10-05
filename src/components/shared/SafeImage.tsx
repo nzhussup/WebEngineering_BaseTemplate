@@ -9,26 +9,33 @@ interface Props {
   readonly width?: number;
 }
 export function SafeImage({ src, description, width }: Props): ReactElement {
-  const [loaded, setLoaded] = useState<string | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
+  const [result, setResult] = useState<{
+    src: string;
+    status: 'loaded' | 'error';
+  } | null>(null);
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    setResult(null);
     async function check(): Promise<void> {
       if (src === null) return;
       try {
-        await loadImage(new Image(), src);
-        if (active) setLoaded(src);
+        await loadImage(new Image(), src, controller.signal);
+        if (active) setResult({ src, status: 'loaded' });
       } catch (error) {
+        if (!active) return;
         console.error('Image failed:', error);
-        if (active) setFailed(src);
+        setResult({ src, status: 'error' });
       }
     }
     void check();
     return () => {
       active = false;
+      controller.abort();
     };
   }, [src]);
-  const available = src !== null && loaded === src;
+  const available =
+    src !== null && result?.src === src && result.status === 'loaded';
   return (
     <>
       <img
@@ -36,7 +43,7 @@ export function SafeImage({ src, description, width }: Props): ReactElement {
         alt={available ? description : 'No image available for ' + description}
         width={width}
       />
-      {src !== null && failed === src && (
+      {src !== null && result?.src === src && result.status === 'error' && (
         <p role="status">Image could not be loaded. A placeholder is shown.</p>
       )}
     </>
