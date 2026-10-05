@@ -34,31 +34,38 @@ function CommentForm({
 }: {
   readonly onAdd: (name: string, text: string) => void;
 }): ReactElement {
-  const [error, setError] = useState('');
+  const [name, setName] = useState('');
+  const [text, setText] = useState('');
+  const [attempted, setAttempted] = useState(false);
+  const nameMissing = name.trim() === '';
+  const textMissing = text.trim() === '';
+  const showError = attempted && (nameMissing || textMissing);
+
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const name = data.get('name');
-    const text = data.get('comment');
-    if (
-      typeof name !== 'string' ||
-      typeof text !== 'string' ||
-      name.trim() === '' ||
-      text.trim() === ''
-    ) {
-      setError('Enter your name and a comment.');
-      return;
-    }
+    setAttempted(true);
+    if (nameMissing || textMissing) return;
     onAdd(name.trim(), text.trim());
-    setError('');
-    form.reset();
+    setName('');
+    setText('');
+    setAttempted(false);
   }
   return (
-    <form className="comment-form" onSubmit={submit}>
+    <form className="comment-form" onSubmit={submit} noValidate>
       <div className="flex-pair">
         <label htmlFor="name">Your name:</label>
-        <input name="name" id="name" placeholder="Enter your name" required />
+        <input
+          name="name"
+          id="name"
+          placeholder="Enter your name"
+          required
+          value={name}
+          onChange={(event) => {
+            setName(event.currentTarget.value);
+          }}
+          aria-invalid={attempted && nameMissing}
+          aria-describedby={showError ? 'comment-error' : undefined}
+        />
       </div>
       <div className="flex-pair">
         <label htmlFor="comment">Your comment:</label>
@@ -66,10 +73,20 @@ function CommentForm({
           name="comment"
           id="comment"
           placeholder="Enter your comment"
+          value={text}
+          onChange={(event) => {
+            setText(event.currentTarget.value);
+          }}
+          aria-invalid={attempted && textMissing}
+          aria-describedby={showError ? 'comment-error' : undefined}
           required
         />
       </div>
-      {error !== '' && <p role="alert">{error}</p>}
+      {showError && (
+        <p id="comment-error" role="alert">
+          Enter your name and a comment.
+        </p>
+      )}
       <div>
         <input type="submit" value="Submit comment" />
       </div>

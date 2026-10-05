@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import type { FormEvent, ReactElement } from 'react';
 
 interface Props {
   readonly onSearch: (query: string) => void;
 }
 export function SearchForm({ onSearch }: Props): ReactElement {
+  const [draftQuery, setDraftQuery] = useState('');
+
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    const value = new FormData(event.currentTarget).get('q');
-    onSearch(typeof value === 'string' ? value.trim() : '');
+    onSearch(draftQuery.trim());
   }
   return (
     <form className="search" onSubmit={submit}>
@@ -16,6 +18,10 @@ export function SearchForm({ onSearch }: Props): ReactElement {
         name="q"
         aria-label="Search article"
         placeholder="Search query"
+        value={draftQuery}
+        onChange={(event) => {
+          setDraftQuery(event.currentTarget.value);
+        }}
       />
       <input type="submit" value="Go!" />
     </form>

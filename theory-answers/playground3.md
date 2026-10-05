@@ -17,3 +17,15 @@ A component boundary groups one responsibility: `SearchForm` submits a query, `C
 A **stable key** identifies the same item across renders. It must be unique among siblings and stay unchanged when the list moves. We use `bear.binomial`, which is the scientific name already used to deduplicate species. React uses keys during reconciliation to match old and new components and preserve their state and DOM nodes.
 
 An array index identifies a position, not a bear. If the first bear is removed or the list is reordered, that position can represent another species. React may reuse the previous component's state for the wrong bear. Random keys are also unsuitable: they change every render and force remounts.
+
+## Task 3: Model state and interaction
+
+- **Props:** Inputs passed by a parent, such as `query` or `onAdd`. Children treat them as read-only.
+- **Stored state:** Values React remembers between renders: comment drafts, the comment list, visibility, and the submitted search query.
+- **Derived values:** Calculated from current props/state. `nameMissing` comes from `name.trim() === ''`; the toggle label comes from `visible`. Storing these separately would create values that could disagree.
+
+Controlled inputs use `value` from state and `onChange` to update it. Successful submission clears state, which clears the inputs. The search draft and applied query are intentionally different: editing the draft does not apply a search until submission.
+
+Direct mutation changes an existing object without giving React a new reference. React may skip an update, and previous state snapshots can be changed unexpectedly. We append comments with `setComments(previous => [...previous, comment])`. The new array preserves old state; the functional update uses the latest pending value.
+
+Lift state to the nearest ancestor shared by its consumers. `App` owns the applied query because navigation submits it and the article uses it. Comment state stays in `CommentsSection`; input drafts stay in their forms. Props are clear over these short paths. Context is useful when many distant components need the same value; it would add unnecessary indirection here.

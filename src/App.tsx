@@ -9,13 +9,13 @@ import {
 import { WildlifeArticle } from './components/article/WildlifeArticle.tsx';
 
 export function App(): ReactElement {
-  const [query, setQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
   return (
     <>
       <Header />
-      <Navigation onSearch={setQuery} />
+      <Navigation onSearch={setAppliedQuery} />
       <main>
-        <WildlifeArticle query={query} />
+        <WildlifeArticle query={appliedQuery} />
         <RelatedLinks />
       </main>
       <Footer />
