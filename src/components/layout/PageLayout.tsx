@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { Link } from 'react-router-dom';
 import { SearchForm } from '../search/SearchForm.tsx';
 
 export function Header(): ReactElement {
@@ -9,20 +10,28 @@ export function Header(): ReactElement {
   );
 }
 export function Navigation({
+  query,
   onSearch,
 }: {
+  readonly query: string;
   readonly onSearch: (query: string) => void;
 }): ReactElement {
+  const links = [
+    { label: 'Home', path: '/bears' },
+    { label: 'Our team', path: '/bears' },
+    { label: 'Projects', path: '/bears' },
+    { label: 'Blog', path: '/bears' },
+  ];
   return (
     <nav className="nav">
       <ul>
-        {['Home', 'Our team', 'Projects', 'Blog'].map((label) => (
-          <li key={label}>
-            <a href="#">{label}</a>
+        {links.map((link) => (
+          <li key={link.label}>
+            <Link to={link.path}>{link.label}</Link>
           </li>
         ))}
       </ul>
-      <SearchForm onSearch={onSearch} />
+      <SearchForm query={query} onSearch={onSearch} />
     </nav>
   );
 }

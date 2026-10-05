@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import type { Bear } from '../../types.ts';
 import { SafeImage } from '../shared/SafeImage.tsx';
 import { Highlight } from '../search/Highlight.tsx';
+import { getBearId } from './bearRoutes.ts';
 
 export interface BearView extends Bear {
   readonly imageUrl: string | null;
@@ -10,10 +12,14 @@ export interface BearView extends Bear {
 export function BearCard({
   bear,
   query,
+  linkToDetail = true,
 }: {
   readonly bear: BearView;
   readonly query: string;
+  readonly linkToDetail?: boolean;
 }): ReactElement {
+  const location = useLocation();
+  const title = <Highlight text={bear.name} query={query} />;
   return (
     <div className="bear">
       <SafeImage
@@ -26,7 +32,18 @@ export function BearCard({
       )}
       <p>
         <b>
-          <Highlight text={bear.name} query={query} />
+          {linkToDetail ? (
+            <Link
+              to={{
+                pathname: '/bears/' + getBearId(bear),
+                search: location.search,
+              }}
+            >
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
         </b>{' '}
         (<Highlight text={bear.binomial} query={query} />)
       </p>

@@ -1,11 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent, ReactElement } from 'react';
 
 interface Props {
+  readonly query: string;
   readonly onSearch: (query: string) => void;
 }
-export function SearchForm({ onSearch }: Props): ReactElement {
-  const [draftQuery, setDraftQuery] = useState('');
+export function SearchForm({ query, onSearch }: Props): ReactElement {
+  const [draftQuery, setDraftQuery] = useState(query);
+
+  useEffect(() => {
+    setDraftQuery(query);
+  }, [query]);
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();

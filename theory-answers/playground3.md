@@ -39,3 +39,15 @@ Our `useBears` hook stores a discriminated union: `loading`, `success`, `empty`,
 Requests can finish out of order: request A starts, the user reloads, request B finishes, then A finishes. Without protection, A could replace B's newer result. Reload and effect cleanup abort the old requests. An active-effect check also rejects late results if cancellation is ignored or the response has already arrived. Cleanup runs before the next effect and on unmount.
 
 Image checks use the same cleanup pattern. Aborting removes listeners and timers; missing or failed images show a placeholder without discarding valid bear data. Errors from cancelled work are ignored because that work no longer belongs to the current UI.
+
+## Task 5: Add client-side routing and verify the migration
+
+**Client-side rendering** means JavaScript in the browser creates and updates the UI. The server sends the app shell and JS bundle; React renders the components.
+
+An **SPA** is a client-rendered app that keeps one HTML document open. Navigation updates the visible view instead of loading a new document for every page.
+
+**Client-side routing** maps the URL to React components inside that SPA. Here, `#/bears` renders the list page and `#/bears/:bearId` renders one bear detail page. `HashRouter` keeps refresh/direct links working in the static Vite build.
+
+Route parameters are required parts of the path. `:bearId` identifies the selected bear, so `#/bears/u-arctos` means "open this bear." Query parameters are optional view state. `?q=brown` means "same page, with this search applied." Query params can be added, removed, or reordered without changing the main resource.
+
+Benefit: navigation feels fast and URLs are shareable, including a selected bear and search query. Cost: more logic runs in the browser. The first useful view depends on loading JS and data, and normal path routing would need server fallback config; that is why this project uses hash routing.
