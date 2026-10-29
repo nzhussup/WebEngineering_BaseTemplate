@@ -25,9 +25,5 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Check lint rules
-        run: npm run lint
-      - name: Check formatting
-        run: npm run format:check
-      - name: Check types and build
-        run: npm run build
+      - name: Check both workspaces
+        run: npm run check

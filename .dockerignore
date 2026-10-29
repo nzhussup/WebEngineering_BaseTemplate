@@ -1,0 +1,7 @@
+.git
+.github
+.husky
+**/dist
+internal
+node_modules
+npm-debug.log
